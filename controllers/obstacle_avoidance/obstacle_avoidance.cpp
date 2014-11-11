@@ -1,6 +1,5 @@
 /**
- * @file    main_template.cpp
- * @brief   A template for webots projects.
+ * @file    obstacle_avoidance.cpp
  *
  * @author  Sergio Rodríguez Coronel <100081046@alumnos.uc3m.es>
  * @date    2014-10

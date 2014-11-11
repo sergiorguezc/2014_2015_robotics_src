@@ -1,6 +1,5 @@
 /**
- * @file    main_template.cpp
- * @brief   A template for webots projects.
+ * @file    obstacle_avoidance.cpp
  *
  * @author  Sergio Rodríguez Coronel <100081046@alumnos.uc3m.es>
  * @date    2014-10
@@ -21,7 +20,6 @@ MyRobot::MyRobot() : DifferentialWheels()
     _my_compass->enable(_time_step);
 
     _mode = FORWARD;
-
 
 
     _distance_sensor[0] = getDistanceSensor("ds0");
@@ -72,32 +70,12 @@ MyRobot::~MyRobot()
 
 void MyRobot::run()
 {
-    double ir0_val = 0.0, ir1_val = 0.0 ,ir2_val = 0.0, ir3_val = 0.0;
-    double ir4_val = 0.0, ir5_val = 0.0 ,ir6_val = 0.0, ir7_val = 0.0;
-    double ir8_val = 0.0, ir9_val = 0.0 ,ir10_val = 0.0, ir11_val = 0.0;
-    double ir12_val = 0.0, ir13_val = 0.0 ,ir14_val = 0.0, ir15_val = 0.0;
 
     double compass_angle;
 
     while (step(_time_step) != -1) {
         // Read the sensors
-        ir0_val = _distance_sensor[0]->getValue();
-        ir1_val = _distance_sensor[1]->getValue();
-        ir2_val = _distance_sensor[2]->getValue();
-        ir3_val = _distance_sensor[3]->getValue();
-        ir4_val = _distance_sensor[4]->getValue();
-        ir5_val = _distance_sensor[5]->getValue();
-        ir6_val = _distance_sensor[6]->getValue();
-        ir7_val = _distance_sensor[7]->getValue();
-        ir8_val = _distance_sensor[8]->getValue();
-        ir9_val = _distance_sensor[9]->getValue();
-        ir10_val = _distance_sensor[10]->getValue();
-        ir11_val = _distance_sensor[11]->getValue();
-        ir12_val = _distance_sensor[12]->getValue();
-        ir13_val = _distance_sensor[13]->getValue();
-        ir14_val = _distance_sensor[14]->getValue();
-        ir15_val = _distance_sensor[15]->getValue();
-
+        ReadSensor();
         const double *compass_val = _my_compass->getValues();
         compass_angle = convert_bearing_to_degrees(compass_val);
 
@@ -105,38 +83,43 @@ void MyRobot::run()
 
         // Control logic of the robot
 
-
-
-        if ((ir1_val > DISTANCE_LIMIT) || (ir14_val > DISTANCE_LIMIT)) {
+        if ((ir_val[0] > DISTANCE_LIMIT) || (ir_val[1] > DISTANCE_LIMIT) || (ir_val[14] > DISTANCE_LIMIT) || (ir_val[15] > DISTANCE_LIMIT)) {
             _mode = OBSTACLE_AVOID_R;
             cout << "Backing up and turning right." << endl;
+
+            // condition for the robot avoid obstacle.
         }
         else {
-            if((ir3_val > ir4_val)){
+            if(( ir_val[4] > DISTANCE_LIMIT + 20)){
                 _mode = TURN_RIGHT;
-                cout << " turn right " << endl;
+                cout << " turn right "<< ir_val[4] << endl;
+
             }
-            else if((ir3_val < ir4_val)){
+            else if(( ir_val[4] > DISTANCE_LIMIT - 20)){
                 _mode = TURN_LEFT;
-                cout << " turn left " << endl;
+                cout << " turn left " << ir_val[4] << endl;
             }
-            else if((ir3_val == ir4_val) && (ir3_val > DISTANCE_LIMIT) && (ir4_val > DISTANCE_LIMIT)){
-                _mode = FORWARD;
-                cout << "forward 2 " << endl;
+
+            // condition for the robot follow the wall.
+
+            else if((ir_val[3] > ir_val[4])){
+                _mode = TURN_LEFT;
+                cout << "turn corner " << endl;
+
+                // condition for the robot turn corner.
             }
-            else{
+
+            /* else{
                 do{
                     _mode = WALL_FOLLOWER;
                     cout << " wall follower " << endl;
-                }while( ir4_val > DISTANCE_LIMIT);
+                }while( ir_val[4] > DISTANCE_LIMIT);
 
-            }
+            }*/
             _mode = FORWARD;
             cout << "forward " << endl;
 
         }
-
-
 
 
         // Send actuators commands according to the mode
@@ -151,10 +134,10 @@ void MyRobot::run()
             break;
         case TURN_LEFT:
             _left_speed = MAX_SPEED / 1.25;
-            _right_speed = MAX_SPEED;
+            _right_speed = 0;
             break;
         case TURN_RIGHT:
-            _left_speed = MAX_SPEED;
+            _left_speed = 0;
             _right_speed = MAX_SPEED / 1.25;
             break;
         case OBSTACLE_AVOID_L:
@@ -181,10 +164,20 @@ void MyRobot::run()
 
 //////////////////////////////////////////////
 
+/* with this function compute the angle */
 double MyRobot::convert_bearing_to_degrees(const double* in_vector)
 {
     double rad = atan2(in_vector[0], in_vector[2]);
     double deg = rad * (180.0 / M_PI);
 
     return deg;
+}
+
+/* with this function we value the distance sensors */
+void MyRobot ::ReadSensor()
+{
+    for(int i = 0 ; i < NUM_DISTANCE_SENSOR; i++){
+        ir_val[i] = _distance_sensor[i]->getValue();
+
+    }
 }
